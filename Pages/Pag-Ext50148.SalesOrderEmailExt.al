@@ -61,7 +61,7 @@ pageextension 50148 "Sales Order Email Ext " extends "Sales Order"
         EmailMessage.Create(Recipient, 'Sales Order Confirmation ' + SalesHeader."No.", BodyMessage, true);
         if EmailSend.Send(EmailMessage, Enum::"Email Scenario"::Default) then
             Message('Email Successfully Sent');
-
+        //this is a test
 
 
     end;
