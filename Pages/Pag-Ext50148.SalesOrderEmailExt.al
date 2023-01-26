@@ -59,8 +59,8 @@ pageextension 50148 "Sales Order Email Ext " extends "Sales Order"
         until SalesLine.Next() = 0;
         BodyMessage += '</table><br><br><b>Thank you & Regards</b><br>This is a System genarated Message';
         EmailMessage.Create(Recipient, 'Sales Order Confirmation ' + SalesHeader."No.", BodyMessage, true);
-        EmailSend.Send(EmailMessage, Enum::"Email Scenario"::Default);
-        Message('Email Successfully Sent');
+        if EmailSend.Send(EmailMessage, Enum::"Email Scenario"::Default) then
+            Message('Email Successfully Sent');
 
 
 
