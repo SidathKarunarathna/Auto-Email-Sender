@@ -25,6 +25,27 @@ pageextension 50148 "Sales Order Email Ext " extends "Sales Order"
                 end;
             }
         }
+        addafter("Create Inventor&y Put-away/Pick")
+        {
+            action(Report1)
+            {
+                ApplicationArea = All;
+                Caption = 'Report';
+                Image = Report;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedOnly = true;
+
+                trigger OnAction()
+                var
+                    Sales: Record "Sales Header";
+                begin
+                    Sales.SetRange("Document Type", Rec."Document Type");
+                    Sales.SetRange("No.", Rec."No.");
+                    Report.Run(50112, true, true, Sales);
+                end;
+            }
+        }
     }
     local procedure SendMail(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     var
@@ -37,9 +58,18 @@ pageextension 50148 "Sales Order Email Ext " extends "Sales Order"
         Recipient: Text;
         UnitCost: Text;
         Total: Text;
+        Text1: Text;
+        TempBlob: Codeunit "Temp Blob";
+        outStreamReport: OutStream;
+        inStreamReport: InStream;
+        RecRef: RecordRef;
+        cnv64: Codeunit "Base64 Convert";
     begin
         Clear(BodyMessage);
         Clear(AddBodyMessage);
+        SalesHeader.SetRange("Document Type",Rec."Document Type");
+        SalesHeader.SetRange("No.", Rec."No.");
+        RecRef.GetTable(SalesHeader);
         BodyMessage := 'Dear <b>' + SalesHeader."Sell-to Customer Name" +
         ',</b><br><br>You have successfully placed Sales order No <b>' + SalesHeader."No." +
         '</b><br><br><table style="font-family: Arial, Helvetica, sans-serif;border-style:1px solid #00838F;width: 70%;">' +
@@ -57,10 +87,18 @@ pageextension 50148 "Sales Order Email Ext " extends "Sales Order"
             Total := Format(SalesLine.Amount);
             BodyMessage += '<tr style="background-color: #D9F0F2"><td>' + LineNo + '</td><td>' + SalesLine.Description + '</td><td>' + Quantity + '</td><td>' + UnitCost + '</td><td>' + Total + '</td></tr>';
         until SalesLine.Next() = 0;
-        BodyMessage += '</table><br><br><b>Thank you & Regards</b><br>This is a System genarated Message';
-        EmailMessage.Create(Recipient, 'Sales Order Confirmation ' + SalesHeader."No.", BodyMessage, true);
-        if EmailSend.Send(EmailMessage, Enum::"Email Scenario"::Default) then
-            Message('Email Successfully Sent');
+        TempBlob.CreateOutStream(outStreamReport);
+        if Report.SaveAs(Report::MyOrderConf, '', ReportFormat::Pdf, outStreamReport, RecRef) then begin
+            TempBlob.CreateInStream(inStreamReport);
+            Text1 := cnv64.ToBase64(inStreamReport, true);
+            BodyMessage += '</table><br><br><b>Thank you & Regards</b><br>This is a System genarated Message';
+            EmailMessage.Create(Recipient, 'Sales Order Confirmation ' + SalesHeader."No.", BodyMessage, true);
+            EmailMessage.AddAttachment('My Order Confirmation.pdf', 'application/pdf', Text1);
+            if EmailSend.Send(EmailMessage, Enum::"Email Scenario"::Default) then
+                Message('Email Successfully Sent');
+        end;
+
+
 
 
     end;
