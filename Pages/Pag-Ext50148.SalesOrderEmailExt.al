@@ -65,7 +65,7 @@ pageextension 50148 "Sales Order Email Ext " extends "Sales Order"
         cnv64: Codeunit "Base64 Convert";
     begin
         Clear(BodyMessage);
-        SalesHeader.SetRange("Document Type",Rec."Document Type");
+        SalesHeader.SetRange("Document Type", Rec."Document Type");
         SalesHeader.SetRange("No.", Rec."No.");
         RecRef.GetTable(SalesHeader);
         BodyMessage := 'Dear <b>' + SalesHeader."Sell-to Customer Name" +

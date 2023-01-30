@@ -67,6 +67,10 @@ report 50112 MyOrderConf
             {
                 group(GroupName)
                 {
+                    field(PostingDate; PostingDate)
+                    {
+                        ApplicationArea = all;
+                    }
                 }
             }
         }
@@ -85,4 +89,5 @@ report 50112 MyOrderConf
     }
     var
         TitleLbl: Label 'My order Confirmation';
+        PostingDate: Date;
 }
